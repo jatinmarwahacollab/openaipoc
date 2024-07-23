@@ -2,5 +2,4 @@ openai
 pinecone
 streamlit
 google.generativeai
-os
 python-dotenv
