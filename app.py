@@ -2,9 +2,14 @@ import openai
 from pinecone import Pinecone, ServerlessSpec
 import streamlit as st
 import google.generativeai as genai
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 # Initialize OpenAI API
-openai.api_key = 'sk-None-cLLH3ZNtuLosuDoDjXvOT3BlbkFJM3zA74y3hEnI4NuumYeZ'  # Replace with your actual OpenAI API key
+openai.api_key = os.getenv('openai_api_key')  # Replace with your actual OpenAI API key
 
 # Initialize OpenAI client, passing the API key
 client = openai.Client(api_key=openai.api_key)  # Pass the API key here
@@ -16,7 +21,7 @@ def get_openai_embedding(text, model="text-embedding-3-small"):
 
 # Initialize Pinecone
 pc = Pinecone(
-    api_key='cf1bc069-b4cb-47dc-8518-1fdf5c0d7129'  # Use your actual Pinecone API key here
+    api_key=os.getenv('pinecone_api_key')  # Use your actual Pinecone API key here
 )
 
 index_name = 'pdf-embeddings-index-openai-chunks'
@@ -50,7 +55,7 @@ def generate_gemini_response(prompt, gemini_api_key):
     return response.text
 
 # Replace gemini_api_key with your actual API key for Gemini
-gemini_api_key = 'AIzaSyDnRTMoghVdxZc6XkBDXfZu3ghZt09ykZw'
+gemini_api_key = os.getenv('gemini_api_key')
 
 # Streamlit UI
 st.title("Jatin Marwaha's Resume")
