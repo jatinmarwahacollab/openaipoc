@@ -1,28 +1,9 @@
-from pinecone import Pinecone, ServerlessSpec
 import streamlit as st
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
-# Initialize Pinecone
-pc = Pinecone(
-    api_key=os.getenv('pinecone_api_key')  # Use your actual Pinecone API key here
-)
-
-index_name = 'pdf-embeddings-index-openai-chunks'
-index = pc.Index(index_name)
-
-def query_index(query, top_k=2):
-    # Directly query Pinecone without generating embeddings
-    results = index.query(
-        vector=query,  # Pass the query directly
-        top_k=top_k,
-        include_values=True,
-        include_metadata=True  # Ensure metadata is included in the response
-    )
-    return results
 
 def generate_gemini_response(prompt, gemini_api_key):
     # Access your API key as an environment variable.
@@ -51,22 +32,10 @@ with st.form(key='question_form'):
 
 if submit_button:
     if user_question:
-        # Query the vector database with the user's question
-        results = query_index(user_question)
-
-        # Check if the top match is above a similarity threshold
-        threshold = 0.3  # Adjust this threshold based on your needs
-        best_match = results['matches'][0] if results['matches'] else None
-        if best_match and best_match['score'] >= threshold:
-            # Use the best match from the index
-            context_snippets = best_match['metadata']['text']
-            prompt = f"Based on the following context, answer the question:\n\nContext:\n{context_snippets}\n\nQuestion: {user_question}\nAnswer:"
-            gemini_response = generate_gemini_response(prompt, gemini_api_key)
-        else:
-            # Use previous history and general knowledge
-            history_context = "\n".join(st.session_state.history[-3:])  # Keep only the last 3 interactions
-            prompt = f"You are a LLM with immense internet knowledge, Based on the previous history try to gather important keywords and then answer the question to the best of your knowledge, if history is not available or it is not making sense, try to answer it anyways with your immense knowledge just mention that you didn't find the relevant information but to the best of my knowledge:\n\nHistory:\n{history_context}\n\nQuestion: {user_question}\nAnswer:"
-            gemini_response = generate_gemini_response(prompt, gemini_api_key)
+        # Generate response using Gemini
+        history_context = "\n".join(st.session_state.history[-3:])  # Keep only the last 3 interactions
+        prompt = f"You are a LLM with immense internet knowledge. Based on the previous history, try to gather important keywords and then answer the question to the best of your knowledge. If history is not available or it is not making sense, try to answer it anyways with your immense knowledge and mention that you didn't find the relevant information but to the best of my knowledge:\n\nHistory:\n{history_context}\n\nQuestion: {user_question}\nAnswer:"
+        gemini_response = generate_gemini_response(prompt, gemini_api_key)
 
         # Display the response from Gemini
         st.markdown("**Jatin:**")
