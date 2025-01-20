@@ -1,23 +1,10 @@
-import openai
 from pinecone import Pinecone, ServerlessSpec
 import streamlit as st
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 
-
 load_dotenv()
-
-# Initialize OpenAI API
-openai.api_key = os.getenv('openai_api_key')  # Replace with your actual OpenAI API key
-
-# Initialize OpenAI client, passing the API key
-client = openai.Client(api_key=openai.api_key)  # Pass the API key here
-
-
-def get_openai_embedding(text, model="text-embedding-3-small"):
-    text = text.replace("\n", " ")
-    return client.embeddings.create(input = [text], model=model).data[0].embedding
 
 # Initialize Pinecone
 pc = Pinecone(
@@ -27,22 +14,15 @@ pc = Pinecone(
 index_name = 'pdf-embeddings-index-openai-chunks'
 index = pc.Index(index_name)
 
-
-def get_query_embedding(query):
-    # Compute the embedding of the query using the OpenAI model
-    embedding = get_openai_embedding(query)
-    return embedding
-
 def query_index(query, top_k=2):
-    query_embedding = get_query_embedding(query)
+    # Directly query Pinecone without generating embeddings
     results = index.query(
-        vector=query_embedding,
+        vector=query,  # Pass the query directly
         top_k=top_k,
         include_values=True,
         include_metadata=True  # Ensure metadata is included in the response
     )
     return results
-
 
 def generate_gemini_response(prompt, gemini_api_key):
     # Access your API key as an environment variable.
